@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PS99 Gems</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:linear-gradient(135deg,#17122b,#24164a 55%,#111827);color:#fff;min-height:100vh}
+.container{max-width:1050px;margin:auto;padding:28px 18px}
+header{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-bottom:28px}
+.logo{font-size:28px;font-weight:800}.logo span{color:#62d8ff}
+.balance{background:#ffffff12;border:1px solid #ffffff20;padding:12px 18px;border-radius:14px;font-weight:700}
+.card{background:#ffffff0d;border:1px solid #ffffff18;border-radius:22px;padding:24px;box-shadow:0 15px 50px #0004;backdrop-filter:blur(8px)}
+.hero{display:grid;grid-template-columns:1.4fr .8fr;gap:20px}
+h1{font-size:42px;margin:5px 0 12px}h2{margin-top:0}
+.muted{color:#bdb8d3;line-height:1.6}
+.gem{color:#62d8ff}
+.buttons{display:flex;flex-wrap:wrap;gap:12px;margin-top:22px}
+button{border:0;border-radius:12px;padding:13px 18px;font-size:15px;font-weight:700;cursor:pointer;background:#6d4aff;color:#fff}
+button:hover{filter:brightness(1.12)}
+button.secondary{background:#ffffff14}
+button.green{background:#18a86b}
+.stat{text-align:center;padding:25px}.big{font-size:38px;font-weight:800;margin:8px}
+.games{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:20px}
+input,select{width:100%;padding:12px;border-radius:10px;border:1px solid #ffffff20;background:#111827;color:#fff;margin:8px 0 12px}
+.result{min-height:28px;margin-top:12px;font-weight:700}
+table{width:100%;border-collapse:collapse}td,th{padding:12px;text-align:left;border-bottom:1px solid #ffffff12}
+@media(max-width:750px){.hero,.games{grid-template-columns:1fr}h1{font-size:34px}header{align-items:flex-start;flex-direction:column}}
+</style>
+</head>
+<body>
+<div class="container">
+<header>
+  <div class="logo">💎 PS99 <span>GEMS</span></div>
+  <div class="balance">Balance: <span class="gem" id="balance">1,000</span> 💎</div>
+</header>
+
+<section class="hero">
+  <div class="card">
+    <p class="gem"><b>VIRTUAL GEMS ONLY</b></p>
+    <h1>Welcome to Gems Casino</h1>
+    <p class="muted">A PS99-inspired virtual Gems game. Start with 1,000 Gems and play coinflip or slots. No real-money deposits or withdrawals.</p>
+    <div class="buttons">
+      <button onclick="daily()">🎁 Claim Daily +500</button>
+      <button class="secondary" onclick="show('coin')">🪙 Coinflip</button>
+      <button class="secondary" onclick="show('slots')">🎰 Slots</button>
+    </div>
+    <div class="result" id="message"></div>
+  </div>
+  <div class="card stat">
+    <div class="muted">Your Gems</div>
+    <div class="big gem" id="bigBalance">1,000</div>
+    <div class="muted">Virtual currency</div>
+  </div>
+</section>
+
+<section class="games">
+  <div class="card" id="coin">
+    <h2>🪙 Coinflip</h2>
+    <label>Bet amount</label>
+    <input id="coinBet" type="number" min="1" value="100">
+    <label>Pick</label>
+    <select id="coinPick"><option>Heads</option><option>Tails</option></select>
+    <button onclick="coinflip()">Flip Coin</button>
+    <div class="result" id="coinResult"></div>
+  </div>
+
+  <div class="card" id="slots">
+    <h2>🎰 Slots</h2>
+    <label>Bet amount</label>
+    <input id="slotBet" type="number" min="1" value="100">
+    <button onclick="slots()">Spin</button>
+    <div class="result" id="slotResult"></div>
+  </div>
+</section>
+
+<section class="card" style="margin-top:20px">
+  <h2>🏆 Leaderboard</h2>
+  <table><thead><tr><th>#</th><th>Player</th><th>Gems</th></tr></thead>
+  <tbody id="leaderboard"></tbody></table>
+</section>
+</div>
+
+<script>
+let gems = Number(localStorage.getItem("gems") || 1000);
+let lastDaily = Number(localStorage.getItem("lastDaily") || 0);
+
+function fmt(n){return n.toLocaleString()}
+function update(){
+  document.getElementById("balance").textContent=fmt(gems);
+  document.getElementById("bigBalance").textContent=fmt(gems);
+  localStorage.setItem("gems",gems);
+  renderLeaderboard();
+}
+function msg(t){document.getElementById("message").textContent=t}
+function show(id){document.getElementById(id).scrollIntoView({behavior:"smooth"})}
+
+function daily(){
+  const day=86400000;
+  if(Date.now()-lastDaily < day){
+    const h=Math.ceil((day-(Date.now()-lastDaily))/3600000);
+    msg("⏳ Daily already claimed. Try again in about "+h+" hour(s).");
+    return;
+  }
+  gems+=500; lastDaily=Date.now(); localStorage.setItem("lastDaily",lastDaily);
+  msg("🎁 You received +500 💎!");
+  update();
+}
+
+function coinflip(){
+  const bet=Math.floor(Number(document.getElementById("coinBet").value));
+  const pick=document.getElementById("coinPick").value;
+  if(!Number.isFinite(bet)||bet<1||bet>gems){document.getElementById("coinResult").textContent="❌ Invalid bet.";return}
+  const result=Math.random()<.5?"Heads":"Tails";
+  if(result===pick){gems+=bet;document.getElementById("coinResult").textContent="🪙 "+result+" — You won +"+fmt(bet)+" 💎!"}
+  else{gems-=bet;document.getElementById("coinResult").textContent="🪙 "+result+" — You lost "+fmt(bet)+" 💎."}
+  update();
+}
+
+function slots(){
+  const bet=Math.floor(Number(document.getElementById("slotBet").value));
+  if(!Number.isFinite(bet)||bet<1||bet>gems){document.getElementById("slotResult").textContent="❌ Invalid bet.";return}
+  const symbols=["💎","🍀","⭐","🔔","7️⃣"];
+  const a=symbols[Math.floor(Math.random()*symbols.length)];
+  const b=symbols[Math.floor(Math.random()*symbols.length)];
+  const c=symbols[Math.floor(Math.random()*symbols.length)];
+  let payout=0;
+  if(a===b&&b===c)payout=bet*5;
+  else if(a===b||b===c||a===c)payout=bet*2;
+  gems-=bet; gems+=payout;
+  document.getElementById("slotResult").textContent=`🎰 ${a} ${b} ${c} — ${payout?`Won ${fmt(payout)} 💎!`:`Lost ${fmt(bet)} 💎.`}`;
+  update();
+}
+
+function renderLeaderboard(){
+  document.getElementById("leaderboard").innerHTML=
+  `<tr><td>1</td><td>You</td><td>${fmt(gems)} 💎</td></tr>
+   <tr><td>2</td><td>LuckyPlayer</td><td>850 💎</td></tr>
+   <tr><td>3</td><td>GemMaster</td><td>500 💎</td></tr>`;
+}
+update();
+</script>
+</body>
+</html>
